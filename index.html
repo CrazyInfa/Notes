@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Мои списки</title>
+<meta name="theme-color" content="#33473f" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(60,90,150,0.10) 23px, rgba(60,90,150,0.10) 24px),
+      repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(60,90,150,0.10) 23px, rgba(60,90,150,0.10) 24px),
+      #f6f4ee;
+    font-family: 'Nunito Sans', sans-serif;
+    color: #22302a;
+    padding-bottom: 70px;
+    min-height: 100vh;
+  }
+  input::placeholder { color: #8b978f; }
+
+  .header { background:#fdfcf8; box-shadow:0 2px 10px rgba(0,0,0,0.07); position:relative; }
+  .rings { display:flex; justify-content:space-evenly; padding:0 18px; margin-bottom:-14px; }
+  .headtext { padding:24px 20px 20px; text-align:center; }
+  h1.title {
+    font-family:'Caveat',cursive; font-weight:700; font-size:42px; margin:0;
+    display:inline-block; border-bottom:2px dashed transparent; cursor:text; outline:none;
+    padding:0 4px;
+  }
+  h1.title:focus { border-bottom:2px dashed #b7c2bd; }
+  .edit-hint { display:block; font-size:10px; color:#a9b3ac; margin-top:2px; letter-spacing:.3px; }
+  .sub { font-size:12px; color:#6c7873; margin:2px 0 0; letter-spacing:.3px; }
+  .stamp {
+    position:absolute; top:14px; right:16px; font-family:'Caveat',cursive; font-size:13px;
+    color:#b7c2bd; border:1.4px solid #d7dfda; border-radius:6px; padding:2px 8px; transform:rotate(-6deg);
+  }
+
+  .wrap { max-width:520px; margin:0 auto; padding:18px 16px 0; }
+  .legend-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,.6); border:1px solid rgba(30,45,40,.12); border-radius:10px; padding:9px 12px; margin-bottom:8px; cursor:pointer; font-size:12px; color:#3d5148; }
+  .legend { display:flex; flex-direction:column; gap:6px; font-size:12px; color:#3d5148; background:rgba(255,255,255,.5); border:1px solid rgba(30,45,40,.1); border-radius:10px; padding:10px 12px; margin-bottom:18px; }
+  .legend-row { display:flex; align-items:center; gap:8px; }
+  .swatch-buy { width:16px; height:12px; background:#f3e968; border-radius:3px; }
+  .swatch-missing { width:8px; height:8px; border-radius:50%; background:#c0392b; }
+  .swatch-packed { width:13px; height:13px; border:1.6px solid #33473f; border-radius:4px; background:#33473f; }
+
+  .card {
+    position:relative; border-radius:4px; padding:20px 16px 14px;
+    box-shadow:0 10px 20px -6px rgba(20,35,30,.35), 0 2px 4px rgba(20,35,30,.15);
+    margin-bottom:30px; margin-top:12px;
+  }
+  .washi {
+    position:absolute; top:-11px; left:22px; width:64px; height:24px; opacity:.9;
+    box-shadow:0 1px 3px rgba(0,0,0,.2); transform:rotate(-4deg); border-radius:1px;
+  }
+  .washi::after {
+    content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0, rgba(255,255,255,.25) 3px, transparent 3px, transparent 7px);
+  }
+  .card-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; gap:8px; }
+  .card-title {
+    font-family:'Caveat',cursive; font-weight:700; font-size:27px; margin:0;
+    outline:none; cursor:text; border-bottom:2px dashed transparent; flex:1;
+  }
+  .card-title:focus { border-bottom:2px dashed rgba(0,0,0,.25); }
+  .del-cat { font-family:'Nunito Sans',sans-serif; font-size:11px; color:#5c6b64; background:rgba(255,255,255,.35); border:none; cursor:pointer; border-radius:6px; padding:4px 6px; flex-shrink:0; }
+  .del-cat.confirm { color:#fff; background:#c0392b; }
+  .progress { font-size:11px; color:#3d5148; margin-bottom:6px; letter-spacing:.3px; }
+  .item-row { display:flex; align-items:flex-start; gap:8px; padding:5px 2px; border-bottom:1px solid rgba(30,45,40,.1); }
+  .checkbox { width:19px; height:19px; margin-top:2px; border-radius:5px; border:1.6px solid #33473f; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; background:rgba(255,255,255,.25); }
+  .checkbox.on { background:#33473f; }
+  .checkbox svg { display:none; }
+  .checkbox.on svg { display:block; }
+  .item-text { flex:1; font-family:'Caveat',cursive; font-size:21px; line-height:1.15; padding-right:2px; word-break:break-word; color:#22302a; }
+  .item-text.packed { color:#6c7873; text-decoration:line-through; }
+  .item-text.buy { background: linear-gradient(180deg, transparent 55%, #f3e968 55%); }
+  .dot { margin-top:6px; width:7px; height:7px; border-radius:50%; background:#c0392b; flex-shrink:0; }
+  .status-btn { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer; border:1.5px dashed rgba(0,0,0,.25); background:transparent; color:#5c6b64; }
+  .status-btn.buy { border:1.5px solid rgba(0,0,0,.15); background:#f3e968; color:#5c5420; }
+  .status-btn.missing { border:1.5px solid rgba(0,0,0,.15); background:#c0392b; color:#fff; }
+  .del-item { width:20px; height:20px; display:flex; align-items:center; justify-content:center; color:#5c6b64; flex-shrink:0; cursor:pointer; background:none; border:none; opacity:.6; }
+  .add-item-row { display:flex; gap:6px; margin-top:10px; }
+  .add-item-row input { flex:1; font-family:'Nunito Sans',sans-serif; font-size:13px; padding:8px 10px; border-radius:8px; border:1px solid rgba(0,0,0,.18); background:rgba(255,255,255,.4); outline:none; color:#22302a; }
+  .add-item-row button { width:34px; border-radius:8px; border:none; background:rgba(0,0,0,.55); color:#fdfcf8; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .empty-hint { font-family:'Caveat',cursive; font-size:18px; color:rgba(0,0,0,.4); padding:6px 2px 2px; }
+
+  .add-cat-btn { width:100%; padding:20px 16px; border-radius:8px; border:2px dashed rgba(51,71,63,.35); background:rgba(255,255,255,.3); color:#33473f; font-family:'Caveat',cursive; font-size:23px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; margin-bottom:30px; }
+  .add-cat-form { border-radius:8px; border:2px dashed rgba(51,71,63,.35); padding:16px; margin-bottom:30px; display:flex; gap:8px; background:rgba(255,255,255,.4); }
+  .add-cat-form input { flex:1; font-family:'Nunito Sans',sans-serif; font-size:14px; padding:9px 10px; border-radius:8px; border:1px solid rgba(30,45,40,.25); outline:none; }
+  .add-cat-form button { padding:0 16px; border-radius:8px; border:none; background:#33473f; color:#eef3ee; cursor:pointer; font-family:'Nunito Sans',sans-serif; font-size:13px; }
+
+  .footer-note { text-align:center; font-size:11px; color:#9aa6a1; padding:10px 20px 0; }
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="stamp" id="dateStamp"></span>
+  <div class="rings" id="rings"></div>
+  <div class="headtext">
+    <h1 class="title" id="appTitle" contenteditable="true" spellcheck="false"></h1>
+    <span class="edit-hint">нажми на заголовок, чтобы переименовать</span>
+    <p class="sub" id="progressLine">0 из 0 собрано</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <button class="legend-toggle" id="legendToggle"></button>
+  <div class="legend" id="legendBox">
+    <div class="legend-row"><span class="swatch-buy"></span> нужно купить</div>
+    <div class="legend-row"><span class="swatch-missing"></span> куплено, но не взято</div>
+    <div class="legend-row"><span class="swatch-packed"></span> уже сделано / собрано</div>
+    <div style="font-size:11px;color:#6c7873;margin-top:2px;">нажми на цветной значок у пункта, чтобы переключить статус</div>
+  </div>
+
+  <div id="categories"></div>
+
+  <button class="add-cat-btn" id="addCatBtn">+ Добавить раздел</button>
+  <div class="add-cat-form" id="addCatForm" style="display:none;">
+    <input id="addCatInput" placeholder="Название раздела…" />
+    <button id="addCatSubmit">Готово</button>
+  </div>
+  <div class="footer-note">данные хранятся только на этом устройстве</div>
+</div>
+
+<script>
+const STORAGE_KEY = "personal-notebook-data-v1";
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+const PALETTE = [
+  { bg: "linear-gradient(155deg,#a9bcb6 0%,#9fb4ad 100%)", tape:"#f3e968", ink:"#1c2b25" },
+  { bg: "linear-gradient(155deg,#a7b9c9 0%,#95a7ba 100%)", tape:"#e8927c", ink:"#1c2530" },
+  { bg: "linear-gradient(155deg,#c9b6a2 0%,#b9a48d 100%)", tape:"#8fb3a6", ink:"#2b2115" },
+  { bg: "linear-gradient(155deg,#b7afc4 0%,#a49cb6 100%)", tape:"#f0c14b", ink:"#221d2c" },
+  { bg: "linear-gradient(155deg,#c7c3a4 0%,#b7b291 100%)", tape:"#e08a8a", ink:"#2a2717" },
+];
+
+const DEFAULT_DATA = {
+  appTitle: "Сборы в вуз",
+  categories: [
+    { id:"c1", title:"Одежда", items:["Футболка","Майка","Штаны","Джинсы","Кофта","Худи, свитер","Обувь (повседн., спорт., улич.)","Шорты","Парадная одежда","Трусы, носки","Ремень","Тапочки","Куртка","Панамка"].map((t,i)=>({id:"c1i"+i,text:t,packed:false,status:"none"})) },
+    { id:"c2", title:"Электротехника", items:[["Ноутбук, мышка","none"],["Зарядки","none"],["Наушники, часы","none"],["Флешки","none"],["Повербанк","none"],["Удлинитель","buy"],["Лампа","buy"]].map((o,i)=>({id:"c2i"+i,text:o[0],packed:false,status:o[1]})) },
+    { id:"c3", title:"Мыльно-рыльные", items:[["Шампунь, кондиционер","missing"],["Гель для душа","none"],["Мочалки","missing"],["Пена для умывания, крем, сыворетка и т.д.","missing"],["Маникюрные ножницы","none"],["Пена, бритва","none"],["Зубная паста, щётка","none"],["Духи, дезодорант","none"]].map((o,i)=>({id:"c3i"+i,text:o[0],packed:false,status:o[1]})) },
+    { id:"c4", title:"Документы", items:["Паспорт","СНИЛС, полис","Аттестат","Военник","ОБЖ справку + мед. книжку","Карты, наличка","Фотографии для док."].map((t,i)=>({id:"c4i"+i,text:t,packed:false,status:"none"})) },
+    { id:"c5", title:"Вещи для кухни", items:[["Гель для стирки","buy"],["Корзинка, сумочки для мыльно-рыльн.","buy"],["Тарелка, ложки, вилка, нож, кружка","none"],["Губка и средство для мытья посуды","none"],["Аптечка","none"]].map((o,i)=>({id:"c5i"+i,text:o[0],packed:false,status:o[1]})) },
+    { id:"c6", title:"Учебные принадлежности", items:["Блокнот","Блочная тетрадь","Тетради 48 листов","Ручки, карандаши","Линейка, транспортир","Ластик","Точилка","Калькулятор","Циркуль"].map((t,i)=>({id:"c6i"+i,text:t,packed:false,status:"none"})) }
+  ]
+};
+
+let data;
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  data = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+} catch (e) {
+  data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+if (!data.appTitle) data.appTitle = "Мои списки";
+
+let legendOpen = true;
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+}
+function nextStatus(s) { return s === "none" ? "buy" : s === "buy" ? "missing" : "none"; }
+
+function iconCheck() { return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#eef3ee" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'; }
+function iconHighlighter(color) { return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.2"><path d="M6 20h4"/><path d="m14 12-8.5 8.5a2.1 2.1 0 1 1-3-3L11 9"/><path d="M15.5 2.5 21.5 8.5"/><path d="m9 11 4-4 6 6-4 4Z"/></svg>`; }
+function iconCircle(color, filled) { return `<svg width="13" height="13" viewBox="0 0 24 24" fill="${filled?color:'none'}" stroke="${color}" stroke-width="2.2"><circle cx="12" cy="12" r="8"/></svg>`; }
+function iconX() { return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'; }
+function iconPlus() { return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'; }
+function iconTrash() { return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'; }
+function iconChevron() { return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg>'; }
+
+function renderRings() {
+  const el = document.getElementById("rings");
+  let html = "";
+  for (let i = 0; i < 22; i++) {
+    html += '<svg width="16" height="26" viewBox="0 0 16 26" style="opacity:.55"><path d="M4 2 C4 2 2 6 2 13 C2 20 4 24 4 24 M12 2 C12 2 14 6 14 13 C14 20 12 24 12 24" stroke="#8b95a1" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>';
+  }
+  el.innerHTML = html;
+}
+
+function renderStamp() {
+  const d = new Date();
+  const months = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+  document.getElementById("dateStamp").textContent = `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function renderTitle() {
+  const el = document.getElementById("appTitle");
+  if (document.activeElement !== el) el.textContent = data.appTitle;
+  document.title = data.appTitle;
+}
+
+function renderLegend() {
+  document.getElementById("legendBox").style.display = legendOpen ? "flex" : "none";
+  const toBuy = data.categories.reduce((s,c)=>s+c.items.filter(i=>i.status==="buy").length,0);
+  const notTaken = data.categories.reduce((s,c)=>s+c.items.filter(i=>i.status==="missing").length,0);
+  document.getElementById("legendToggle").innerHTML =
+    `<span>купить: <strong style="color:#5c5420">${toBuy}</strong> · не взято: <strong style="color:#c0392b">${notTaken}</strong></span>
+     <span style="transform:${legendOpen?'rotate(180deg)':'none'};transition:transform .15s;display:flex">${iconChevron()}</span>`;
+}
+
+function renderProgress() {
+  const total = data.categories.reduce((s,c)=>s+c.items.length,0);
+  const packed = data.categories.reduce((s,c)=>s+c.items.filter(i=>i.packed).length,0);
+  document.getElementById("progressLine").textContent = `${packed} из ${total} собрано`;
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderCategories() {
+  const el = document.getElementById("categories");
+  el.innerHTML = "";
+  if (data.categories.length === 0) {
+    el.innerHTML = '<div class="empty-hint" style="text-align:center;padding:30px 0;">Пока пусто — добавь первый раздел ниже ✎</div>';
+    return;
+  }
+  data.categories.forEach((cat, idx) => {
+    const pal = PALETTE[idx % PALETTE.length];
+    const packedCount = cat.items.filter(i=>i.packed).length;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.background = pal.bg;
+
+    let itemsHtml = "";
+    if (cat.items.length === 0) {
+      itemsHtml = `<div class="empty-hint">пусто — добавь пункт ниже</div>`;
+    }
+    cat.items.forEach(item => {
+      const buyClass = item.status === "buy" ? " buy" : "";
+      const packedClass = item.packed ? " packed" : "";
+      const dot = item.status === "missing" ? '<span class="dot"></span>' : "";
+      const statusClass = item.status === "buy" ? "buy" : item.status === "missing" ? "missing" : "";
+      const statusIcon = item.status === "missing" ? iconCircle("#ffffff", true) : iconHighlighter(item.status==="buy" ? "#5c5420" : "#5c6b64");
+      itemsHtml += `
+        <div class="item-row">
+          <button class="checkbox${item.packed?' on':''}" data-act="toggle" data-cat="${cat.id}" data-item="${item.id}">${iconCheck()}</button>
+          ${dot}
+          <span class="item-text${buyClass}${packedClass}">${escapeHtml(item.text)}</span>
+          <button class="status-btn ${statusClass}" data-act="status" data-cat="${cat.id}" data-item="${item.id}">${statusIcon}</button>
+          <button class="del-item" data-act="delitem" data-cat="${cat.id}" data-item="${item.id}">${iconX()}</button>
+        </div>`;
+    });
+
+    card.innerHTML = `
+      <div class="washi" style="background:${pal.tape};"></div>
+      <div class="card-head">
+        <h2 class="card-title" style="color:${pal.ink}" contenteditable="true" spellcheck="false" data-cat="${cat.id}">${idx+1}. ${escapeHtml(cat.title)}</h2>
+        <button class="del-cat" data-act="delcat" data-cat="${cat.id}">${iconTrash()}</button>
+      </div>
+      <div class="progress">собрано ${packedCount} / ${cat.items.length}</div>
+      <div class="items">${itemsHtml}</div>
+      <div class="add-item-row">
+        <input placeholder="Добавить пункт…" data-cat="${cat.id}" class="new-item-input" />
+        <button data-act="additem" data-cat="${cat.id}">${iconPlus()}</button>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+function renderAll() {
+  renderTitle();
+  renderLegend();
+  renderProgress();
+  renderCategories();
+  save();
+}
+
+document.getElementById("legendToggle").addEventListener("click", () => {
+  legendOpen = !legendOpen;
+  renderLegend();
+});
+
+const titleEl = document.getElementById("appTitle");
+titleEl.addEventListener("blur", () => {
+  const v = titleEl.textContent.trim();
+  data.appTitle = v || "Мои списки";
+  renderAll();
+});
+titleEl.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); titleEl.blur(); } });
+
+document.getElementById("addCatBtn").addEventListener("click", () => {
+  document.getElementById("addCatBtn").style.display = "none";
+  document.getElementById("addCatForm").style.display = "flex";
+  document.getElementById("addCatInput").focus();
+});
+function submitAddCat() {
+  const input = document.getElementById("addCatInput");
+  const v = input.value.trim();
+  if (!v) return;
+  data.categories.push({ id: uid(), title: v, items: [] });
+  input.value = "";
+  document.getElementById("addCatBtn").style.display = "flex";
+  document.getElementById("addCatForm").style.display = "none";
+  renderAll();
+}
+document.getElementById("addCatSubmit").addEventListener("click", submitAddCat);
+document.getElementById("addCatInput").addEventListener("keydown", e => { if (e.key === "Enter") submitAddCat(); });
+
+document.getElementById("categories").addEventListener("click", (e) => {
+  const catTitleEl = e.target.closest(".card-title");
+  const btn = e.target.closest("[data-act]");
+  if (!btn && !catTitleEl) return;
+  if (!btn) return;
+  const act = btn.dataset.act;
+  const catId = btn.dataset.cat;
+  const cat = data.categories.find(c => c.id === catId);
+
+  if (act === "toggle") {
+    const item = cat.items.find(i => i.id === btn.dataset.item);
+    item.packed = !item.packed;
+    renderAll();
+  } else if (act === "status") {
+    const item = cat.items.find(i => i.id === btn.dataset.item);
+    item.status = nextStatus(item.status);
+    renderAll();
+  } else if (act === "delitem") {
+    cat.items = cat.items.filter(i => i.id !== btn.dataset.item);
+    renderAll();
+  } else if (act === "delcat") {
+    if (btn.dataset.confirm === "1") {
+      data.categories = data.categories.filter(c => c.id !== catId);
+      renderAll();
+    } else {
+      btn.dataset.confirm = "1";
+      btn.classList.add("confirm");
+      btn.textContent = "точно?";
+    }
+  } else if (act === "additem") {
+    const input = document.querySelector(`.new-item-input[data-cat="${catId}"]`);
+    const v = input.value.trim();
+    if (!v) return;
+    cat.items.push({ id: uid(), text: v, packed: false, status: "none" });
+    renderAll();
+  }
+});
+
+document.getElementById("categories").addEventListener("focusout", (e) => {
+  if (e.target.classList.contains("card-title")) {
+    const catId = e.target.dataset.cat;
+    const cat = data.categories.find(c => c.id === catId);
+    const idx = data.categories.findIndex(c => c.id === catId);
+    let v = e.target.textContent.trim().replace(/^\d+\.\s*/, "");
+    if (!v) v = "Без названия";
+    cat.title = v;
+    renderAll();
+  }
+});
+document.getElementById("categories").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.classList.contains("card-title")) {
+    e.preventDefault();
+    e.target.blur();
+  }
+  if (e.key === "Enter" && e.target.classList.contains("new-item-input")) {
+    const catId = e.target.dataset.cat;
+    const cat = data.categories.find(c => c.id === catId);
+    const v = e.target.value.trim();
+    if (!v) return;
+    cat.items.push({ id: uid(), text: v, packed: false, status: "none" });
+    renderAll();
+  }
+});
+
+renderRings();
+renderStamp();
+renderAll();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
